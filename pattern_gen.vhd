@@ -5,8 +5,8 @@ entity pattern_gen is
     port (
 	clk : in std_logic;
 	valid : in std_logic;
-	row : in std_logic_vector(9 downto 0);
-	col : in std_logic_vector(9 downto 0);
+	row : in unsigned(9 downto 0);
+	col : in unsigned(9 downto 0);
 	rgb : out std_logic_vector(5 downto 0)
     );
 end entity;
@@ -33,7 +33,7 @@ end component;
 	
 begin
 	board: gameboard port map(
-	rd_addr_i=> row(8 downto 4),
+	rd_addr_i=> std_logic_vector(row(8 downto 4)),
 	wr_clk_i=> clk,
 	wr_clk_en_i=> '1',
 	rd_clk_en_i=> '1',
@@ -45,6 +45,6 @@ begin
 	rd_clk_i=> clk
 	);
 	
-	is_on <= read_data(to_integer(6d"39" - unsigned(col(9 downto 4))));
+	is_on <= read_data(to_integer(6d"39" - col(9 downto 4)));
 	rgb <= "000100" when(valid = '1'and is_on= '1') else "000000";
 end;
