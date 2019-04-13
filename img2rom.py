@@ -8,11 +8,11 @@
 from PIL import Image
 import numpy as np
 
-outfile = open('spaceship_square_big.hex', 'w')
+outfile = open('alien_square.hex', 'w')
 
 # Open the input image and convert it to a Numpy array
 # The input image should generally be a power of 2 in width/height
-img = np.asarray(Image.open('spaceship_square_big.png'))
+img = np.asarray(Image.open('alien_square.png'))
 
 # Iterate through all the pixels
 for row in range(img.shape[0]):
@@ -27,7 +27,7 @@ for row in range(img.shape[0]):
     else:
       pixel = 0x0
     # Write each pixel as a hex number separated by a space
-    outfile.write('%x ' % pixel)
+    outfile.write('%x' % pixel)
 
   # Use a newline for each row, just so the output file is human-readable
   outfile.write('\n')
