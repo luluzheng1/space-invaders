@@ -3,6 +3,8 @@ use IEEE.numeric_std.all;
 
 entity top is 
     port ( 
+	leftbutton : in std_logic;
+	rightbutton: in std_logic;
 	HSYNC : out std_logic; 
 	VSYNC : out std_logic; 
 	RGB : out std_logic_vector(5 downto 0) 
@@ -40,15 +42,28 @@ component vga is
 	); 
 end component;
 
-component pattern_gen2 is
-	port (
-		clk: in std_logic;
-		valid : in std_logic;
-		row : in unsigned(9 downto 0);
-		col : in unsigned(9 downto 0);
-		rgb : out std_logic_vector(5 downto 0)
+component game_graphics is
+   port (
+	clk : in std_logic;
+	valid : in std_logic;
+	row : in unsigned(9 downto 0);
+	col : in unsigned(9 downto 0);
+	cmd : in unsigned(3 downto 0);
+	rgb : out std_logic_vector(5 downto 0)
     );
 end component;
+
+component buttons is 
+     port (
+	clk: in std_logic;
+	row: in unsigned(9 downto 0);
+	col: in unsigned(9 downto 0);
+	leftbutton: in std_logic; 
+	rightbutton : in std_logic;
+	command: out unsigned(3 downto 0)
+	);	
+end component;
+
 
 signal inputclk: std_logic;
 signal pixclk: std_logic;
@@ -56,6 +71,7 @@ signal pixvalid: std_logic;
 signal pixrow: unsigned(9 downto 0);
 signal pixcol: unsigned(9 downto 0);
 signal OUTPUTWAVE: std_logic;
+signal cmd: unsigned(3 downto 0);
 
 begin 
     -- Instantiate the 48 MHz source clock 
@@ -87,13 +103,24 @@ begin
     );
 
    -- Connnect the pattern generator
-   pattern : pattern_gen2
+   graphics: game_graphics
    port map (
 	clk => pixclk,
 	valid => pixvalid,
 	row => pixrow,
 	col => pixcol,
+	cmd => cmd,
 	rgb => RGB
    ); 
    
+   -- Connect the buttons
+    control: buttons 
+	port map(
+	clk => pixclk,
+	row=> pixrow,
+	col=> pixcol,
+	leftbutton=> leftbutton,
+	rightbutton=> rightbutton,
+	command=> cmd
+	);	
 end;
