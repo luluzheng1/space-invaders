@@ -21,6 +21,10 @@ constant LEFT_CMD: integer := 1;
 constant RIGHT_CMD: integer := 2;
 constant UP_CMD: integer := 3;
 constant DOWN_CMD: integer := 4;
+constant A_CMD: integer :=5;
+constant B_CMD: integer :=6;
+constant START_CMD: integer :=7;
+constant SELECT_CMD: integer :=8;
 	
 signal memory: integer;
 	

@@ -50,7 +50,9 @@ constant DOWN_CMD: integer := 4;
 signal rom_x: integer := 0;
 signal rom_y: std_logic_vector(4 downto 0) := "00000";
 signal ship_x: unsigned(9 downto 0) := to_unsigned(304,10);
-signal y_coord: unsigned(4 downto 0);
+signal y_coord: integer;
+signal x_coord: integer;
+signal rom_valid: std_logic;
 signal ship_valid: std_logic;
 signal read_data: std_logic_vector(31 downto 0);
 	
@@ -80,11 +82,18 @@ process (clk) is begin
 	end if;
 end process;
 
-	y_coord <= to_unsigned(to_integer(row) - SHIP_TOP_B, 5);
-	rom_y <= std_logic_vector(y_coord);
-	rom_x <= to_integer(col - ship_x);
+	y_coord <= to_integer(row) - SHIP_TOP_B;
+	x_coord <= to_integer(col) - to_integer(ship_x);
+
+	rom_valid <= '1' when (y_coord >= 0 and y_coord < 32) and 
+				(x_coord >= 0 and x_coord < 32) else '0';
+	
+	rom_y <= std_logic_vector(to_unsigned(y_coord,5)) when rom_valid ='1' else "00000";
+	rom_x <= x_coord when rom_valid ='1' else 0;
+	
 	ship_valid <= '1' when (row >= to_unsigned(SHIP_TOP_B,10) and row < to_unsigned(SHIP_BOT_B,10))and 
-				  (col >= ship_x and col < (ship_x + to_unsigned(32,10))) else '0';
+				  (col >= ship_x and col < (ship_x + to_unsigned(32,10))) and
+				  (ship_x >= SHIP_L_B and ship_x + to_unsigned(32,10) < SHIP_R_B) else '0';
 				  
 	rgb <= BLUE when valid ='1' and ship_valid='1' and read_data(rom_x)='1' else "000000";
 end;
