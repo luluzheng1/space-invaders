@@ -9,14 +9,17 @@ entity buttons is
 	col: in unsigned(9 downto 0);
 	leftbutton: in std_logic; 
 	rightbutton : in std_logic;
+	resetbutton: in std_logic;
 	command: out unsigned(3 downto 0)
 	);	
 end entity;
 
 architecture synth of buttons is
 
+-- Location to update the command input
 constant UPDATE_ROW: integer := 490;
 	
+-- Commands from the controller
 constant LEFT_CMD: integer := 1;
 constant RIGHT_CMD: integer := 2;
 constant UP_CMD: integer := 3;
@@ -25,19 +28,26 @@ constant A_CMD: integer :=5;
 constant B_CMD: integer :=6;
 constant START_CMD: integer :=7;
 constant SELECT_CMD: integer :=8;
+constant STANDBY_CMD: integer := 9;
 	
-signal memory: integer;
+signal choice: integer;
 	
 begin
+-- Update memory in the dead zone
 process (clk) is begin
 	if rising_edge(clk) and row = to_unsigned(UPDATE_ROW,10) and col = to_unsigned(650,10) then
-		if leftbutton = '1' then
-			memory <= LEFT_CMD;
-		elsif rightbutton = '1' then
-			memory <= RIGHT_CMD;
+		if leftbutton = '0' then
+			choice <= LEFT_CMD;
+		elsif rightbutton = '0' then
+			choice <= RIGHT_CMD;
+		elsif resetbutton = '0' then
+			choice <= START_CMD;
+		else
+			choice <= STANDBY_CMD;
 		end if;
 	end if;
 end process;
 
-command <= to_unsigned(memory,4);
+-- Send out a command
+command <= to_unsigned(choice,4);
 end;

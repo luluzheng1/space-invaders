@@ -41,8 +41,8 @@ begin
     end process;
 
     valid <= '1' when (col <= to_unsigned(VISIBLE_PIX,10) and row <= to_unsigned(VISIBLE_LIN,10)) else '0';
-    hsync <= '1' when (col < to_unsigned(656,10) or col >= to_unsigned(752,10)) else '0';
-    vsync <= '1' when (row < to_unsigned(490,10) or row >= to_unsigned(492,10)) else '0';
+    hsync <= '1' when (col <= to_unsigned(656,10) or col > to_unsigned(752,10)) else '0';
+    vsync <= '1' when (row <= to_unsigned(490,10) or row > to_unsigned(492,10)) else '0';
     out_row <= row;
     out_col <= col;
 end;
