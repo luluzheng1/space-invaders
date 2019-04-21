@@ -31,7 +31,7 @@ constant START_CMD: integer :=7;
 constant SELECT_CMD: integer :=8;
 constant STANDBY_CMD: integer := 9;
 	
-signal choice: integer;
+signal input: integer;
 	
 begin
 -- Update memory in the dead zone
@@ -40,19 +40,19 @@ process (clk) is begin
 		
 		-- Using pull up buttons so it's '0' instead of '1'
 		if leftbutton = '0' then
-			choice <= LEFT_CMD;
+			input <= LEFT_CMD;
 		elsif rightbutton = '0' then
-			choice <= RIGHT_CMD;
+			input <= RIGHT_CMD;
 		elsif resetbutton = '0' then
-			choice <= START_CMD;
+			input <= START_CMD;
 		elsif a_button <= '0' then
-			choice <= A_CMD;
+			input <= A_CMD;
 		else
-			choice <= STANDBY_CMD;
+			input <= STANDBY_CMD;
 		end if;
 	end if;
 end process;
 
 -- Send out a command
-command <= to_unsigned(choice,4);
+command <= to_unsigned(input,4);
 end;
