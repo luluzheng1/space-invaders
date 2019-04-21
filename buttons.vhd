@@ -10,6 +10,7 @@ entity buttons is
 	leftbutton: in std_logic; 
 	rightbutton : in std_logic;
 	resetbutton: in std_logic;
+	a_button: in std_logic;
 	command: out unsigned(3 downto 0)
 	);	
 end entity;
@@ -36,12 +37,16 @@ begin
 -- Update memory in the dead zone
 process (clk) is begin
 	if rising_edge(clk) and row = to_unsigned(UPDATE_ROW,10) and col = to_unsigned(650,10) then
+		
+		-- Using pull up buttons so it's '0' instead of '1'
 		if leftbutton = '0' then
 			choice <= LEFT_CMD;
 		elsif rightbutton = '0' then
 			choice <= RIGHT_CMD;
 		elsif resetbutton = '0' then
 			choice <= START_CMD;
+		elsif a_button <= '0' then
+			choice <= A_CMD;
 		else
 			choice <= STANDBY_CMD;
 		end if;

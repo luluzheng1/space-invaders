@@ -6,6 +6,7 @@ entity top is
 	leftbutton : in std_logic;
 	rightbutton: in std_logic;
 	resetbutton: in std_logic;
+	a_button: in std_logic;
 	HSYNC : out std_logic; 
 	VSYNC : out std_logic; 
 	RGB : out std_logic_vector(5 downto 0) 
@@ -62,6 +63,7 @@ component buttons is
 	leftbutton: in std_logic; 
 	rightbutton : in std_logic;
 	resetbutton: in std_logic;
+	a_button: in std_logic;
 	command: out unsigned(3 downto 0)
 	);	
 end component;
@@ -124,6 +126,7 @@ begin
 	leftbutton=> leftbutton,
 	rightbutton=> rightbutton,
 	resetbutton=> resetbutton,
+	a_button=> a_button,
 	command=> cmd
 	);	
 end;
