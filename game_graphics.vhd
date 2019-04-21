@@ -34,7 +34,8 @@ end component;
 constant RED: std_logic_vector(5 downto 0) := "110000";
 constant GREEN: std_logic_vector(5 downto 0) := "001100";
 constant BLUE: std_logic_vector(5 downto 0) := "000011";
--- Ship boundaries
+constant WHITE: std_logic_vector(5 downto 0) := "111111";
+-- Ship boundaries
 constant SHIP_TOP_B: integer := 432; 
 constant SHIP_BOT_B: integer := 464;	
 constant SHIP_R_B: integer := 560;
@@ -43,8 +44,8 @@ constant SHIP_L_B: integer := 80;
 -- Row in dead space
 constant UPDATE_ROW: integer := 500;
 -- Distance ship travel per click
-constant STEP: integer := 16;
--- Commands from the controller
+constant STEP: integer := 8;
+-- Commands from the controller
 constant LEFT_CMD: integer := 1;
 constant RIGHT_CMD: integer := 2;
 constant UP_CMD: integer := 3;
@@ -53,6 +54,7 @@ constant A_CMD: integer :=5;
 constant B_CMD: integer :=6;
 constant START_CMD: integer :=7;
 constant SELECT_CMD: integer :=8;
+constant STANDBY_CMD: integer :=9;
 	
 -- rom coordinates
 signal rom_x: integer := 0;
@@ -61,14 +63,14 @@ signal y_coord: integer;
 signal x_coord: integer;
 
 -- ship location
-signal GAME_START: boolean := true;
 constant START_X: integer := 304;
-signal ship_x: integer;
+signal ship_x: integer := 304;
+signal memory: integer;
 
 -- check if valid
 signal rom_valid: std_logic;
 signal ship_valid: std_logic;
-signal ship_valid_b: std_logic;
+signal ship_valid_lb, ship_valid_rb: std_logic;
 
 -- output 32 bits word from rom
 signal read_data: std_logic_vector(31 downto 0);
@@ -88,29 +90,21 @@ begin
 	);
 
 -- Update ship's location when in the dead zone
-process (clk) is begin
-	if rising_edge(clk) and row = to_unsigned(UPDATE_ROW,10) and col = to_unsigned(660,10)then
-		if GAME_START = true then
-			ship_x <= START_X;
-			GAME_START <= false;
+process (clk, cmd, memory) is begin
+	if cmd = START_CMD then
+		memory <= START_X;
+	elsif rising_edge(clk) and row = to_unsigned(UPDATE_ROW,10) and col = to_unsigned(660,10) then			
+		if cmd = LEFT_CMD and ship_valid_lb = '1' then
+			memory <= memory - STEP;
+		elsif cmd = RIGHT_CMD and ship_valid_rb = '1' then
+			memory <= memory + STEP;
 		end if;
-	
-		ship_x <= ship_x;
-		if cmd = LEFT_CMD then
-			ship_x <= ship_x - STEP;
-		elsif cmd = RIGHT_CMD then
-			ship_x <= ship_x + STEP;
-		end if;
-		
-		if ship_valid_b = '0' then
-			if cmd = LEFT_CMD then
-				ship_x <= SHIP_L_B;
-			elsif cmd = RIGHT_CMD then
-				ship_x <= SHIP_R_B - 32;
-			end if;
-		end if;
+	elsif cmd = STANDBY_CMD then
+		memory <= memory;
 	end if;
 end process;
+
+ship_x <= memory;
 
 -- Get the x and y location for rom
 y_coord <= to_integer(row) - SHIP_TOP_B;
@@ -129,8 +123,10 @@ ship_valid <= '1' when row >= to_unsigned(SHIP_TOP_B,10) and row <= to_unsigned(
 				  col >= to_unsigned(ship_x,10) and col <= to_unsigned(ship_x + 32,10) else '0';
 				  
 -- Valid boundary for the ship
-ship_valid_b <= '1' when ship_x >= SHIP_L_B and ship_x+32 <= SHIP_R_B else '0';
+ship_valid_lb <= '1' when ship_x > SHIP_L_B else '0';
+ship_valid_rb <= '1' when ship_x+32 < SHIP_R_B else '0';
 
 -- Output color
-rgb <= BLUE when valid ='1' and ship_valid='1' and read_data(rom_x)='1' else "000000";
+rgb <= GREEN when valid ='1' and ship_valid='1' and read_data(rom_x)='1' else "000000";
+
 end;
