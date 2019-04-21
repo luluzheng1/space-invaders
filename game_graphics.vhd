@@ -44,7 +44,9 @@ constant SHIP_L_B: integer := 80;
 -- Row in dead space
 constant UPDATE_ROW: integer := 500;
 -- Distance ship travel per click
-constant STEP: integer := 8;
+constant STEP: integer := 4;
+-- Distance bullet travels
+constant VELOCITY: integer := 6;
 -- Commands from the controller
 constant LEFT_CMD: integer := 1;
 constant RIGHT_CMD: integer := 2;
@@ -64,13 +66,18 @@ signal x_coord: integer;
 
 -- ship location
 constant START_X: integer := 304;
-signal ship_x: integer := 304;
-signal memory: integer;
+signal ship_x: integer;
+signal memory_ship: integer;
+
+-- bullet location
+signal ship_bullet_y: integer;
+signal memory_bullet_ship: integer;
 
 -- check if valid
 signal rom_valid: std_logic;
 signal ship_valid: std_logic;
 signal ship_valid_lb, ship_valid_rb: std_logic;
+signal ship_bullet_valid: std_logic;
 
 -- output 32 bits word from rom
 signal read_data: std_logic_vector(31 downto 0);
@@ -89,24 +96,42 @@ begin
 	rd_clk_i=> clk
 	);
 
--- Update ship's location when in the dead zone
-process (clk, cmd, memory) is begin
+process (clk, cmd, memory_ship) is begin
+	-- Make ship starts at the middle
 	if cmd = START_CMD then
-		memory <= START_X;
-	elsif rising_edge(clk) and row = to_unsigned(UPDATE_ROW,10) and col = to_unsigned(660,10) then			
+		memory_ship <= START_X;
+	-- Update memories when in the dead zone and some inputs occurs
+	elsif rising_edge(clk) and row = to_unsigned(UPDATE_ROW,10) and col = to_unsigned(660,10) then
+		-- Change ship's location when receives input
 		if cmd = LEFT_CMD and ship_valid_lb = '1' then
-			memory <= memory - STEP;
+			memory_ship <= memory_ship - STEP;
 		elsif cmd = RIGHT_CMD and ship_valid_rb = '1' then
-			memory <= memory + STEP;
+			memory_ship <= memory_ship + STEP;
+		end if;
+	-- Ship stay in one place if no inputs
+	elsif cmd = STANDBY_CMD then
+		memory_ship <= memory_ship;
+	end if;
+	
+	-- Shoot
+	if rising_edge(clk) and row = to_unsigned(UPDATE_ROW,10) and col = to_unsigned(670,10) then
+		if cmd = A_CMD and memory_bullet_ship > 0 then
+			memory_bullet_ship <= memory_bullet_ship - VELOCITY;
+		else
+			memory_bullet_ship <= -16;
 		end if;
 	elsif cmd = STANDBY_CMD then
-		memory <= memory;
+		memory_bullet_ship <= memory_bullet_ship;
 	end if;
 end process;
 
-ship_x <= memory;
+-- Give ship_x the ship's stored location
+ship_x <= memory_ship;
 
--- Get the x and y location for rom
+-- Give bullet_y the ship's bullet stored loction
+ship_bullet_y <= memory_bullet_ship;
+
+-- Get the x and y coordinates for rom
 y_coord <= to_integer(row) - SHIP_TOP_B;
 x_coord <= to_integer(col) - ship_x;
 
@@ -126,7 +151,12 @@ ship_valid <= '1' when row >= to_unsigned(SHIP_TOP_B,10) and row <= to_unsigned(
 ship_valid_lb <= '1' when ship_x > SHIP_L_B else '0';
 ship_valid_rb <= '1' when ship_x+32 < SHIP_R_B else '0';
 
+-- Valid size of the ship's bullet
+ship_bullet_valid <= '1' when row >= to_unsigned(ship_bullet_y,10) and row <= to_unsigned(ship_bullet_y + 16,10)and 
+				  col >= to_unsigned(ship_x + 14,10) and col <= to_unsigned(ship_x + 18,10) else '0';
+
 -- Output color
-rgb <= GREEN when valid ='1' and ship_valid='1' and read_data(rom_x)='1' else "000000";
+rgb <= BLUE when valid ='1' and ship_valid='1' and read_data(rom_x)='1' else 
+	   WHITE when valid ='1' and ship_bullet_valid = '1' else "000000";
 
 end;
