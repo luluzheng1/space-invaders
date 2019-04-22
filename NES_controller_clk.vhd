@@ -4,32 +4,18 @@ use IEEE.numeric_std.all;
 
 entity NES_controller_clk is
 	port(
+		clk_full : in std_logic;
 		NESclk : out std_logic;
-		NEScount : out unsigned(10 downto 0);
-		clk_full : out std_logic
+		NEScount : out unsigned(10 downto 0)
 	);
 end NES_controller_clk;
 
 
 architecture  synth of NES_controller_clk is
 
-	component HSOSC is 
-	generic (
-		CLKHF_DIV : String := "0b00"
-	);
-	port (
-		CLKHFPU : in std_logic := 'X';
-		CLKHFEN : in std_logic := 'X';
-		CLKHF : out std_logic := 'X'
-	);
-	end component;
-
-
 	signal counter_20 : unsigned(19 downto 0):= (others => '0');
 
-	
 begin
-	oscillator : HSOSC port map('1', '1', clk_full);
 	
 	process (clk_full) is
 	begin
