@@ -4,8 +4,8 @@ use IEEE.numeric_std.all;
 
 entity NES_controller_top is
 	port(
+		clk : in std_logic;
 		data : in std_logic;
-		
 		latch : out std_logic;
 		controller_clk : out std_logic;
 		
@@ -23,6 +23,7 @@ architecture  synth of NES_controller_top is
 
 	component NES_controller_clk is 
 	port (
+		clk : in std_logic;
 		NESclk : out std_logic;
 		NEScount : out unsigned(10 downto 0);
 		clk_full : out std_logic
@@ -37,7 +38,7 @@ architecture  synth of NES_controller_top is
 	signal down_p : std_logic;
 
 begin
-	clocks : NES_controller_clk port map (NESclk, NEScount, clk_full);
+	clocks : NES_controller_clk port map (clk, NESclk, NEScount, clk_full);
 	
 	process (NESclk, clk_full) is
 	begin

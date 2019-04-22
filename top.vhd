@@ -1,132 +1,80 @@
-library IEEE; use IEEE.std_logic_1164.all; 
-use IEEE.numeric_std.all; 
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.numeric_std.all;
 
-entity top is 
-    port ( 
-	leftbutton : in std_logic;
-	rightbutton: in std_logic;
-	resetbutton: in std_logic;
-	a_button: in std_logic;
-	HSYNC : out std_logic; 
-	VSYNC : out std_logic; 
-	RGB : out std_logic_vector(5 downto 0) 
-); 
-end entity;
-
-architecture synth of top is
-component HSOSC is
-    generic ( 
-    	CLKHF_DIV : String := "0b00"); -- Clock divider, see documentation for details 
-    port( 
-		CLKHFPU : in std_logic := 'X'; 
-		CLKHFEN : in std_logic := 'X'; 
-		CLKHF : out std_logic := 'X'
-	); 
-end component; 
-
-component pllgen is 
-    port( 
-		outglobal_o: out std_logic; 
-		outcore_o: out std_logic; 
-		ref_clk_i: in std_logic; 
-		rst_n_i: in std_logic
-	); 
-end component;
-
-component vga is
-	port ( 
-		inputclk : in std_logic;
-		valid: out std_logic; 
-		out_row : out unsigned(9 downto 0);
-		out_col :  out unsigned(9 downto 0);
-		hsync : out std_logic;
-		vsync : out std_logic
-	); 
-end component;
-
-component game_graphics is
-   port (
-	clk : in std_logic;
-	valid : in std_logic;
-	row : in unsigned(9 downto 0);
-	col : in unsigned(9 downto 0);
-	cmd : in unsigned(3 downto 0);
-	rgb : out std_logic_vector(5 downto 0)
-    );
-end component;
-
-component buttons is 
-     port (
-	clk: in std_logic;
-	row: in unsigned(9 downto 0);
-	col: in unsigned(9 downto 0);
-	leftbutton: in std_logic; 
-	rightbutton : in std_logic;
-	resetbutton: in std_logic;
-	a_button: in std_logic;
-	command: out unsigned(3 downto 0)
-	);	
-end component;
+entity NES_controller_top is
+	port(
+		clk : in std_logic;
+		data : in std_logic;
+		latch : out std_logic;
+		controller_clk : out std_logic;
+		
+		A_p : out std_logic;
+		B_p : out std_logic;
+		select_p : out std_logic;
+		start_p : out std_logic;
+		left_p : out std_logic;
+		right_p : out std_logic
+	);
+end NES_controller_top;
 
 
-signal inputclk: std_logic;
-signal pixclk: std_logic;
-signal pixvalid: std_logic;
-signal pixrow: unsigned(9 downto 0);
-signal pixcol: unsigned(9 downto 0);
-signal OUTPUTWAVE: std_logic;
-signal cmd: unsigned(3 downto 0);
+architecture  synth of NES_controller_top is
 
-begin 
-    -- Instantiate the 48 MHz source clock 
-    clkgen : HSOSC 
-	port map (
-	CLKHFPU => '1', -- Power up, 
-	CLKHFEN => '1', -- Enable output 
-	CLKHF => inputclk
-    ); 
-
-    -- Create a 25.175 MHz pixel clock 
-    pll : pllgen 
-    port map( 
-	outglobal_o=> pixclk,
-	outcore_o=> OUTPUTWAVE, 
-	ref_clk_i=> inputclk, 
-	rst_n_i=> '1' 
-    );
+	component NES_controller_clk is 
+	port (
+		clk : in std_logic;
+		NESclk : out std_logic;
+		NEScount : out unsigned(10 downto 0);
+		clk_full : out std_logic
+	);
+	end component;
 	
-    -- Connect the VGA driver
-    vgadriver : vga 
-    port map ( 
-	inputclk => pixclk,
-	valid => pixvalid,
-	out_row => pixrow, 
-	out_col => pixcol, 
-	hsync => HSYNC,
-	vsync => VSYNC
-    );
+	signal NESclk : std_logic;
+	signal NEScount : unsigned(10 downto 0);
+	signal clk_full : std_logic;
+	signal data_register : std_logic_vector(7 downto 0);
+	signal up_p : std_logic;
+	signal down_p : std_logic;
 
-   -- Connnect the pattern generator
-   graphics: game_graphics
-   port map (
-	clk => pixclk,
-	valid => pixvalid,
-	row => pixrow,
-	col => pixcol,
-	cmd => cmd,
-	rgb => RGB
-   ); 
-   
-   -- Connect the buttons
-    control: buttons 
-	port map(
-	clk => pixclk,
-	row=> pixrow,
-	col=> pixcol,
-	leftbutton=> leftbutton,
-	rightbutton=> rightbutton,
-	resetbutton=> resetbutton,
-	a_button=> a_button,
-	command=> cmd
-	);	
+begin
+	clocks : NES_controller_clk port map (clk, NESclk, NEScount, clk_full);
+	
+	process (NESclk, clk_full) is
+	begin
+	
+	if rising_edge(NESclk) then
+		
+		latch <= '1' when (NEScount = 0) else '0';
+		
+		if NEScount >= 0and NEScount <= 8 then
+			data_register(0) <= data;
+			data_register(1) <= data_register(0);
+			data_register(2) <= data_register(1);
+			data_register(3) <= data_register(2);
+			data_register(4) <= data_register(3);
+			data_register(5) <= data_register(4);
+			data_register(6) <= data_register(5);
+			data_register(7) <= data_register(6);
+		end if;
+		
+		if NEScount = 9 then
+			A_p <= not data_register(7);
+			B_p <= not data_register(6);
+			select_p <= not data_register(5);
+			start_p <= not data_register(4);
+			up_p <= not data_register(3);
+			down_p <= not data_register(2);
+			left_p <= not data_register(1);
+			right_p <= not data_register(0);
+		end if;
+		
+	end if;
+	
+	if rising_edge(clk_full) then
+		controller_clk <= (not NESclk) when (NEScount > 1 and NEScount < 10) else '0';
+	end if;
+	
+	end process;
+
 end;
