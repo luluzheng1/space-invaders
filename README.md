@@ -1,10 +1,18 @@
 # Space-Invaders
 Space Invaders Inspired Game written in VHDL
-Luan's Branch
+
+Implemented:
+Generated a spaceship and made it move on the screen based on user input
+
+The Spaceship can shoot a bullet when stationary
+
+Bullet regenerates when it is not in the visible zone
+
+Generated an alien that moves from left to right and stays within an left and right bounded area
 
 Current:
-Working on VHDL code to generate a spaceship and make it move on the screen
+Generate a block of 3 x 4 aliens
 
 Future:
-Implement aliens onto the screen in the correct spot
-Make the aliens move
+Make aliens move right and down based on a lfsr and possibly a counter
+

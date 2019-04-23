@@ -8,11 +8,11 @@
 from PIL import Image
 import numpy as np
 
-outfile = open('alien_square.hex', 'w')
+outfile = open('alien.hex', 'w')
 
 # Open the input image and convert it to a Numpy array
 # The input image should generally be a power of 2 in width/height
-img = np.asarray(Image.open('alien_square.png'))
+img = np.asarray(Image.open('Images/alien_small.png'))
 
 # Iterate through all the pixels
 for row in range(img.shape[0]):

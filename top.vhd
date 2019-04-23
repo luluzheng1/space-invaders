@@ -3,10 +3,11 @@ use IEEE.numeric_std.all;
 
 entity top is 
     port ( 
-	leftbutton : in std_logic;
-	rightbutton: in std_logic;
+	NES_data : in std_logic;
 	HSYNC : out std_logic; 
 	VSYNC : out std_logic; 
+    NES_latch : out std_logic;
+    NES_controller_clk : out std_logic;
 	RGB : out std_logic_vector(5 downto 0) 
 ); 
 end entity;
@@ -60,8 +61,25 @@ component buttons is
 	col: in unsigned(9 downto 0);
 	leftbutton: in std_logic; 
 	rightbutton : in std_logic;
+	resetbutton: in std_logic;
+	a_button: in std_logic;
 	command: out unsigned(3 downto 0)
 	);	
+end component;
+
+component NES_controller_top is
+	port(
+		clk_full : in std_logic;
+                data : in std_logic;
+
+		latch : out std_logic;
+		controller_clk : out std_logic;
+		
+		A_p : out std_logic;
+		start_p : out std_logic;
+		left_p : out std_logic;
+		right_p : out std_logic
+	);
 end component;
 
 
@@ -72,6 +90,12 @@ signal pixrow: unsigned(9 downto 0);
 signal pixcol: unsigned(9 downto 0);
 signal OUTPUTWAVE: std_logic;
 signal cmd: unsigned(3 downto 0);
+
+-- Signals for NES
+signal leftbutton : std_logic;
+signal rightbutton: std_logic;
+signal resetbutton: std_logic;
+signal a_button: std_logic;
 
 begin 
     -- Instantiate the 48 MHz source clock 
@@ -113,6 +137,21 @@ begin
 	rgb => RGB
    ); 
    
+    -- Connect Controller 
+	NES_buttons : NES_controller_top
+    port map (
+     clk_full => inputclk,
+     data => NES_data,
+
+     latch => NES_latch,
+     controller_clk => NES_controller_clk,
+
+     A_p => a_button,
+     start_p => resetbutton,
+     left_p => leftbutton,
+     right_p => rightbutton
+    );
+   
    -- Connect the buttons
     control: buttons 
 	port map(
@@ -121,6 +160,9 @@ begin
 	col=> pixcol,
 	leftbutton=> leftbutton,
 	rightbutton=> rightbutton,
+	resetbutton=> resetbutton,
+	a_button=> a_button,
 	command=> cmd
 	);	
+	
 end;
