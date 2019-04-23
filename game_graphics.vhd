@@ -233,7 +233,7 @@ bullet_on <= '1' when row >= to_unsigned(ship_bullet_y,10) and row <= to_unsigne
 
 -- Get the x and y coordinates for alien rom
 alien_y_coord <= to_integer(row) - alien_y;
-alien_x_coord <= to_integer(col) - alien_x;
+alien_x_coord <= (to_integer(col) - alien_x)mod(64);
 
 reverse <= '1' when alien_x = ALIEN_R_B else '0' when alien_x = ALIEN_L_B;
 

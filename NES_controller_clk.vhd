@@ -4,22 +4,22 @@ use IEEE.numeric_std.all;
 
 entity NES_controller_clk is
 	port(
-		clk: in std_logic;
+		clk_full : in std_logic;
 		NESclk : out std_logic;
-		NEScount : out unsigned(10 downto 0);
-		clk_full : out std_logic
+		NEScount : out unsigned(10 downto 0)
 	);
 end NES_controller_clk;
 
 
 architecture  synth of NES_controller_clk is
+
 	signal counter_20 : unsigned(19 downto 0):= (others => '0');
 
+begin
 	
-begin	
-	process (clk) is
+	process (clk_full) is
 	begin
-		if rising_edge(clk) then
+		if rising_edge(clk_full) then
 			if counter_20 = 1048574 then
 				counter_20 <= (others => '0');
 			else
@@ -30,5 +30,5 @@ begin
 
 	NESclk <= counter_20(8);
 	NEScount <= counter_20(19 downto 9);
-	clk_full <= clk;
+
 end;
