@@ -126,13 +126,13 @@ signal alien_read_data: std_logic_vector(31 downto 0);
 
 --component collision_checker is
   --port (
-	--clk : in std_logic;
+    --clk : in std_logic;
     --bullet_on : in std_logic;
     --bullet_x : in integer;
     --bullet_y : in integer;
     --target_on : in std_logic;
     --target_x : in integer;
-	--target_y : in integer;
+    --target_y : in integer;
     --target_off : out std_logic;
     --lives : out integer range 0 to 3
   --);
@@ -165,17 +165,17 @@ begin
 	rd_clk_i=> clk
 	);
 	
-	--collide: collision_checker port map (
-	  --clk => clk;
-      --bullet_on => bullet_on;
-      --bullet_x => ship_bullet_x;
-      --bullet_y => ship_bullet_y;
-      --target_on => alien_on;
-      --target_x => alien_x;
-	  --target_y => alien_y;
-      --target_off => alien_on;
+    --collide: collision_checker port map (
+      --clk => clk,
+      --bullet_on => bullet_on,
+      --bullet_x => ship_bullet_x,
+      --bullet_y => ship_bullet_y,
+      --target_on => alien_on,
+      --target_x => alien_x,
+      --target_y => alien_y,
+      --target_off => alien_on,
       --lives => ship_lives
-	--);
+    --);
 
 process (clk, cmd, ship_location, bullet_location) is begin
 	-- Update memories when in the dead zone and some inputs occurs
@@ -220,13 +220,12 @@ process (clk, cmd, ship_location, bullet_location) is begin
 		--end if;
 	--end if;
 	if rising_edge(clk) and row = to_unsigned(UPDATE_ROW,10) and col = to_unsigned(680,10) then
-		--a; --added for collisions
 		if cmd = START_CMD then
 			alien_y <= ALIEN_TOP_B;
 			alien_x <= ALIEN_L_B + 80;
-		elsif reverse = '0' then
+		elsif reverse = '0' then --elsif reverse = '0' and alien_on = '1'
 			alien_x <= alien_x + 1;
-		elsif reverse = '1' then
+		elsif reverse = '1' then --elsif reverse = '1' and alien_on = '1'
 			alien_x <= alien_x - 1;
 		end if;
 	elsif cmd = STANDBY_CMD then
