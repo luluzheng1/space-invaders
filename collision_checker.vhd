@@ -19,7 +19,7 @@ end collision_checker;
 architecture synth of collision_checker is
         constant SHIP_TOP_B: integer := 432;
 
-        signal state : integer range 0 to 28 := 0;
+        signal state : integer range 0 to 31 := 0; --30 aliens
         signal lives_left : integer range 0 to 3 := 3;
         signal both_on : std_logic;
         signal within_x : std_logic;
@@ -38,7 +38,7 @@ if rising_edge(clk) then
         end if;
 
         target_off <= within_x and within_y;
-        state <= 0 when (state = 28) else state + 1;
+        state <= 0 when (state = 31) else state + 1;
 
 end if;
 end process;
