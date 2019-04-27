@@ -30,11 +30,11 @@ process(clk) is begin
 if rising_edge(clk) then
 
         if state = 0 then -- checking ship and alien bullet
-                within_x <= '1' when (bullet_x + 2 >= target_x) and (bullet_x <= target_x + 32) and both_on = '1' else '0';
-                within_y <= '1' when (bullet_y + 8 >= SHIP_TOP_B) and both_on = '1' else '0';
+                within_x <= '1' when ((bullet_x + 2 >= target_x) and (bullet_x <= target_x + 32) and (both_on = '1')) else '0';
+                within_y <= '1' when ((bullet_y + 8 >= SHIP_TOP_B) and (both_on = '1')) else '0';
         elsif state > 0 then -- checking aliens and ship bullet
-                within_x <= '1' when (bullet_x + 2 >= target_x) and (bullet_x <= target_x + 32) and both_on = '1' else '0';
-                within_y <= '1' when (bullet_y <= target_y + 32) and both_on = '1' else '0';
+                within_x <= '1' when ((bullet_x + 2 >= target_x) and (bullet_x <= target_x + 32) and (both_on = '1')) else '0';
+                within_y <= '1' when ((bullet_y <= target_y + 32) and (both_on = '1')) else '0';
         end if;
 
         target_off <= within_x and within_y;
@@ -43,8 +43,8 @@ if rising_edge(clk) then
 end if;
 end process;
 
-both_on <= bullet_on and target_on;
-lives_left <= lives_left - 1 when state = 0 and target_off = '1' else lives_left;
+both_on <= '1' when (bullet_on = '1' and target_on = '1') else '0';
+lives_left <= lives_left - 1 when ((state = 0) and (target_off = '1')) else lives_left;
 lives <= lives_left;
 
 end;
