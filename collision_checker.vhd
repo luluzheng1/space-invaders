@@ -37,7 +37,7 @@ if rising_edge(clk) then
                 within_y <= '1' when ((bullet_y <= target_y + 32) and (both_on = '1')) else '0';
         end if;
 
-        target_off <= within_x and within_y;
+        target_off <= '1' when (within_x = '1' and within_y = '1');
         state <= 0 when (state = 31) else state + 1;
 
 end if;
