@@ -96,13 +96,13 @@ constant START_X: integer := 304;
 signal ship_x: integer;
 signal ship_location: integer;
 
---signal ship_lives : integer range 0 to 3 := 3; --added for collisions
+signal ship_lives : integer range 0 to 3 := 3; --added for collisions
+signal alien_alive : std_logic := '1'; --added for collisions
 
 -- bullet location
 signal ship_bullet_x: integer;
 signal ship_bullet_y: integer;
 signal bullet_location: integer;
---signal bullet_on : std_logic; --added for collisions
 
 -- alien location
 signal alien_x : integer;
@@ -110,7 +110,6 @@ signal alien_y : integer;
 signal reverse : std_logic := '0';
 signal counter : unsigned(25 downto 0);
 signal count: integer;
---signal alien_on : std_logic <= '1'; --added for collisions
 
 -- check if valid
 signal rom_valid: std_logic;
@@ -124,19 +123,19 @@ signal bullet_on: std_logic;
 signal read_data: std_logic_vector(31 downto 0);
 signal alien_read_data: std_logic_vector(31 downto 0);	
 
---component collision_checker is
-  --port (
-    --clk : in std_logic;
-    --bullet_on : in std_logic;
-    --bullet_x : in integer;
-    --bullet_y : in integer;
-    --target_on : in std_logic;
-    --target_x : in integer;
-    --target_y : in integer;
-    --target_off : out std_logic;
-    --lives : out integer range 0 to 3
-  --);
---end component;
+component collision_checker is
+  port (
+	clk : in std_logic;
+    bullet_on : in std_logic;
+    bullet_x : in integer;
+    bullet_y : in integer;
+    target_on : in std_logic;
+    target_x : in integer;
+	target_y : in integer;
+    target_off : out std_logic;
+    lives : out integer range 0 to 3
+  );
+end component;
 
 begin
 	ship: spaceship_graphics port map(
@@ -165,17 +164,17 @@ begin
 	rd_clk_i=> clk
 	);
 	
-    --collide: collision_checker port map (
-      --clk => clk,
-      --bullet_on => bullet_on,
-      --bullet_x => ship_bullet_x,
-      --bullet_y => ship_bullet_y,
-      --target_on => alien_on,
-      --target_x => alien_x,
-      --target_y => alien_y,
-      --target_off => alien_on,
-      --lives => ship_lives
-    --);
+	collide: collision_checker port map (
+	  clk => clk,
+      bullet_on => bullet_on,
+      bullet_x => ship_bullet_x,
+      bullet_y => ship_bullet_y,
+      target_on => alien_alive,
+      target_x => alien_x,
+	  target_y => alien_y,
+      target_off => alien_alive,
+      lives => ship_lives
+	);
 
 process (clk, cmd, ship_location, bullet_location) is begin
 	-- Update memories when in the dead zone and some inputs occurs
@@ -197,35 +196,27 @@ process (clk, cmd, ship_location, bullet_location) is begin
 	-- Shoot
 	if rising_edge(clk) and row = to_unsigned(UPDATE_ROW,10) and col = to_unsigned(670,10) then
 		if cmd = A_CMD and bullet_location <= 0 then --bullet starts
-			--bullet_on <= '1'; --added for collisions
+			bullet_on <= '1'; --added for collisions
 			bullet_location <= SHIP_TOP_B - 16;
 			ship_bullet_x <= ship_location;
 		elsif bullet_location > 0 then --bullet moves
-			--bullet_on <= '1'; --added for collisions
+			bullet_on <= '1'; --added for collisions
 			bullet_location <= bullet_location - VELOCITY;
 			ship_bullet_x <= ship_bullet_x;
 		elsif bullet_location <= 0 then --bullet hides
-			--bullet_on <= '0'; --added for collisions
+			bullet_on <= '0'; --added for collisions
 			bullet_location <= -16;
 		end if;
 	end if;
 	
-	--if rising_edge(clk) then
-		--counter <= counter + to_unsigned(1,26);
-		--if counter(25) = '1' and count < alien_x + 320 then
-			--count <= count + 48;
-			--alien_x <= alien_x + count;
-		--elsif count >= 320 then
-			--count <= 0;
-		--end if;
-	--end if;
 	if rising_edge(clk) and row = to_unsigned(UPDATE_ROW,10) and col = to_unsigned(680,10) then
+		--added for collisions
 		if cmd = START_CMD then
 			alien_y <= ALIEN_TOP_B;
 			alien_x <= ALIEN_L_B + 80;
-		elsif reverse = '0' then --elsif reverse = '0' and alien_on = '1'
+		elsif reverse = '0' then
 			alien_x <= alien_x + 1;
-		elsif reverse = '1' then --elsif reverse = '1' and alien_on = '1'
+		elsif reverse = '1' then
 			alien_x <= alien_x - 1;
 		end if;
 	elsif cmd = STANDBY_CMD then
