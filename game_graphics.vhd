@@ -55,19 +55,38 @@ component alien_shooting_generator is
 	); 
 end component;
 
---component collision_checker is
-  --port(
-    --    clk : in std_logic;
-		--bullet_on : in std_logic;
-        --bullet_x : in integer;
-        --bullet_y : in integer;
-        --target_on : in std_logic;
-        --target_x : in integer;
-        --target_y : in integer;
-        --target_off : out std_logic;
-        --lives : out integer range 0 to 3
---  );
---end component;
+component collision_check_ship is
+        port(
+                clk : in std_logic;
+                reset_game : in std_logic;
+                alien_bullet_on : in std_logic;
+                ship_box_on : in std_logic;
+                ship_pixel_on : in std_logic;
+                endgame : out std_logic;
+                lives : out integer range 0 to 3
+        );
+end component;
+
+component collision_check_alien is
+        port (
+        clk : in std_logic;
+        reset_game : in std_logic;
+        ship_bullet_on : in std_logic;
+        alien_box_on : in std_logic;
+        alien_pixel_on : in std_logic;
+        alien_x : in integer;
+        alien_y : in integer;
+        bullet_y : in integer;
+        bullet_x : in integer;
+        aliens_alive_row0 : in std_logic_vector(9 downto 0);
+        aliens_alive_row1 : in std_logic_vector(9 downto 0);
+        aliens_alive_row2 : in std_logic_vector(9 downto 0);
+        aliens_updated_row0 : out std_logic_vector(9 downto 0);
+        aliens_updated_row1 : out std_logic_vector(9 downto 0);
+        aliens_updated_row2 : out std_logic_vector(9 downto 0);
+        endgame : out std_logic
+  );
+end component;
 
 -- Colors
 constant RED: std_logic_vector(5 downto 0) := "110000";
@@ -167,6 +186,10 @@ signal alien_rom_on: std_logic_vector(31 downto 0);
 signal hit_ship, hit_alien: std_logic;
 signal effect: std_logic;
 
+signal lives : integer range 0 to 3;
+signal reset_logic : std_logic;
+signal endgame : std_logic;
+
 begin
 	ship: spaceship_graphics port map(
 	rd_addr_i=> rom_y,
@@ -199,13 +222,43 @@ begin
 		input_y => alien_y, 
 		output_x => alien_shooter_x, 
 		output_y => alien_shooter_y
-	); 
+        ); 
+        
+        collision_ship : collision_check_ship port map (
+                clk => clk,
+                reset_game => reset_logic,
+                alien_bullet_on => alien_bullet_on,
+                ship_box_on => ship_on,
+                ship_pixel_on => rom_on(rom_x)
+                endgame => endgame,
+                lives => lives
+        );
+
+        collision_alien : collision_check_alien port map (
+                clk => clk,
+                reset_game => reset_logic,
+                ship_bullet_on => ship_bullet_on,
+                alien_box_on => alien_on,
+                alien_pixel_on => alien_rom_on(alien_rom_x),
+                alien_x => alien_x,
+                alien_y => alien_y,
+                bullet_y => bullet_y,
+                bullet_x => bullet_x,
+                aliens_alive_row0 => aliens_alive_row0,
+                aliens_alive_row1 => aliens_alive_row1,
+                aliens_alive_row2 => aliens_alive_row2,
+                aliens_updated_row0 => aliens_alive_row0,
+                aliens_updated_row1 => aliens_alive_row1,
+                aliens_updated_row2 => aliens_alive_row2,
+                endgame => endgame
+        );
   
 process (clk, cmd, ship_location, bullet_location, alien_x, alien_y, alien_bullet_loc_x, alien_bullet_loc_y) is begin
 	-- Update ship when in the dead zone and some inputs occurs
 	if rising_edge(clk) and row = to_unsigned(UPDATE_ROW,10) and col = to_unsigned(660,10) then
 		if cmd = START_CMD then
-			ship_location <= START_X;						-- Make ship starts at the middle
+                        ship_location <= START_X;					-- Make ship starts at the middle
+                        reset_logic <= '1';
 		elsif cmd = LEFT_CMD and ship_lb = '1' and hit_ship = '0' then
 			ship_location <= ship_location - STEP;			-- Change ship's location when receives input
 		elsif cmd = RIGHT_CMD and ship_rb = '1' and hit_ship = '0' then
@@ -213,7 +266,12 @@ process (clk, cmd, ship_location, bullet_location, alien_x, alien_y, alien_bulle
 		end if;
 	elsif cmd = STANDBY_CMD then
 		ship_location <= ship_location;						-- Ship stay in one place if no inputs
-	end if;
+        end if;
+        
+        -- end the reset signal after it's been sent
+        if reset_logic = '1' then
+                reset_logic = 0;
+        end if;
 	
 	-- Update bullet when in the dead zone and some inputs occurs
 	if rising_edge(clk) and row = to_unsigned(UPDATE_ROW,10) and col = to_unsigned(670,10) then
