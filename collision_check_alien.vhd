@@ -14,7 +14,7 @@ entity collision_check_alien is
                 alien_y : in integer;
                 bullet_y : in integer; -- will need to edit some from game graphics version because of offset
                 bullet_x : in integer;
-                aliens_alive_row0 : in std_logic_vector(9 downto 0);
+                aliens_alive_row0 : in std_logic_vector(9 downto 0); -- change to 'to'?
                 aliens_alive_row1 : in std_logic_vector(9 downto 0);
                 aliens_alive_row2 : in std_logic_vector(9 downto 0);
                 aliens_updated_row0 : out std_logic_vector(9 downto 0);
@@ -28,6 +28,8 @@ end collision_check_alien;
 architecture synth of collision_check_alien is
 
         signal no_aliens : std_logic;
+        signal alien_shot_y : integer range 0 to 2;
+        signal alien_shot_x : integer range 0 to 9;
 
 begin
 process(clk) is begin
@@ -36,8 +38,9 @@ if rising_edge(clk) then
         if (ship_bullet_on = '1' and alien_box_on = '1' and alien_pixel_on = '1') then
                         -- check which alien
                         
-                        case bullet_y is
-                                when 
+                        if (bullet_y < alien_x + 32) then
+                                
+                        end if;
                         
                         
                         
