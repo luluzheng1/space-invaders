@@ -9,7 +9,7 @@ entity game_graphics is
 	row : in unsigned(9 downto 0);
 	col : in unsigned(9 downto 0);
 	cmd : in unsigned(3 downto 0);
-	status: out unsigned(1 downto 0);
+	status: out unsigned(2 downto 0);
 	rgb : out std_logic_vector(5 downto 0)
     );
 end entity;
@@ -162,7 +162,7 @@ signal alien_rom_on: std_logic_vector(31 downto 0);
 signal hit_ship, hit_alien: std_logic;
 signal effect: std_logic;
 
-signal alive : unsigned(1 downto 0) := "01";
+signal alive : unsigned(2 downto 0) := "001";
 
 begin
 	ship: spaceship_graphics port map(
@@ -255,11 +255,11 @@ process (clk, cmd, ship_location, bullet_location, alien_x, alien_y, alien_bulle
 	
 	
 	if rising_edge(clk) then
-		rom_on <= read_data;
 		-- Update rom_x if it is inside the ROM image
+		rom_on <= read_data;
 		rom_x <= x_coord when rom_valid ='1' else 0;
 		
-		-- Update alien_rom_x and alien_rom_y if it is inside the ROM image
+		-- Update alien_rom_x if it is inside the ROM image
 		alien_rom_on <= alien_read_data;
 		alien_rom_x <= alien_x_coord when alien_rom_valid ='1' else 0;
 	end if;
@@ -322,17 +322,13 @@ alien_on <= '1' when row >= to_unsigned(alien_y, 10) and row <= to_unsigned(alie
 -- Hit detection
 hit_ship <= '1' when ((alien_bullet_x +2 >= ship_x) and (alien_bullet_x <= ship_x+14) and 
 				alien_bullet_y >= SHIP_TOP_B) else '0' when cmd = START_CMD;
-				
-hit_alien <= '1' when ((ship_x = ship_x) and (ship_x+14 = ship_x+14) and 
-				SHIP_TOP_B >= SHIP_TOP_B) else '0';
 
 -- Output status
-alive <= "11" when (hit_ship = '1') else "01";
+alive <= "010" when (hit_ship = '1') else "001";
 status <= alive;
 
 -- Output color
-rgb <= GREEN when valid ='1' and ship_on= '1' and rom_on(rom_x)= '1' and hit_ship = '0' else
-	   YELLOW when valid ='1' and ship_on= '1' and hit_alien = '1' else	   "000000" when valid ='1' and ship_on= '1' and rom_on(rom_x)= '1' and hit_ship = '1' else
+rgb <= GREEN when valid ='1' and ship_on= '1' and rom_on(rom_x)= '1' and hit_ship = '0' else	   "000000" when valid ='1' and ship_on= '1' and rom_on(rom_x)= '1' and hit_ship = '1' else
 	   WHITE when valid ='1' and bullet_on = '1' else
 	   WHITE when valid = '1' and alien_bullet_on = '1' else
 	   RED when valid = '1' and alien_on= '1' and alien_rom_on(alien_rom_x)= '1' else "000000";

@@ -10,7 +10,7 @@ entity game_graphics_1v1 is
 	col : in unsigned(9 downto 0);
 	cmd1 : in unsigned(3 downto 0);
 	cmd2 : in unsigned(3 downto 0);
-	status: out unsigned(1 downto 0);
+	status: out unsigned(2 downto 0);
 	rgb : out std_logic_vector(5 downto 0)
     );
 end entity;
@@ -88,10 +88,6 @@ constant START_CMD: integer :=7;
 constant SELECT_CMD: integer :=8;
 constant STANDBY_CMD: integer :=9;
 
--- Determine number of aliens and spacing
-constant NUM_MOD: integer := 32;
-constant NUM_ALIEN: integer := 9;
-	
 --ship ROM coordinates
 signal rom_x: integer := 0;
 signal rom_y: std_logic_vector(4 downto 0) := "00000";
@@ -135,12 +131,16 @@ signal alien_bullet_on: std_logic;
 
 -- output 32-bit words from ROM
 signal read_data: std_logic_vector(31 downto 0);
-signal alien_read_data: std_logic_vector(31 downto 0);	
+signal alien_read_data: std_logic_vector(31 downto 0);signal rom_on:  std_logic_vector(31 downto 0);
+signal alien_rom_on: std_logic_vector(31 downto 0);
+
 
 -- hit detection
 signal hit_ship, hit_alien: std_logic;
 signal effect: std_logic;
 signal dead: integer;
+
+signal alive: unsigned(2 downto 0) := "010";
 
 begin
 	ship: spaceship_graphics port map(
@@ -220,13 +220,15 @@ if rising_edge(clk) and row = to_unsigned(UPDATE_ROW,10) and col = to_unsigned(6
 		ship_bullet_y2 <= BULLET_OFF;
 		ship_bullet_x2 <= BULLET_OFF;
 	end if;
-	
-	-- Clear up graphics
-	if rising_edge(clk) then
-		-- Update rom_x if it is inside the ROM image
-		rom_x <= x_coord when rom_valid ='1' else 0;
-	end if;
 end if;
+
+-- Clear up graphics
+if rising_edge(clk) then
+	-- Update rom_x if it is inside the ROM image
+	rom_on <= read_data;
+	rom_x <= x_coord when rom_valid ='1' else 0;
+end if;
+
 end process;
 
 -------------------------------------------------------------------------------SHIP GRAPHICS LOGIC
@@ -253,15 +255,13 @@ ship_rb <= '1' when ship_x+32 < SHIP_R_B else '0';
 bullet_on <= '1' when (row > to_unsigned(ship_bullet_y,10) and row <= to_unsigned(ship_bullet_y + 8,10)and 
 				  col > to_unsigned(ship_bullet_x + 15,10) and col <= to_unsigned(ship_bullet_x + 17,10)) or
 				  (row > to_unsigned(ship_bullet_y2,10) and row <= to_unsigned(ship_bullet_y2 + 8,10)and
-				   (col = to_unsigned(ship_bullet_x2 + 10,10) or col = to_unsigned(ship_bullet_x2 + 20,10))
-				  )else '0';
+				   col > to_unsigned(ship_bullet_x2+12,10) and col <= to_unsigned(ship_bullet_x2+20,10)) else '0';
 				  
 -- Hit detection for ship
 hit_alien <= '1' when (ship_bullet_x +2 >= alien_x-8 and ship_bullet_x <= alien_x+14 and 
 				ship_bullet_y <= ALIEN_BOT_B) or 
-				(ship_bullet_x+10 >= alien_x-8 and ship_bullet_x-10 <= alien_x+14 and 
-				ship_bullet_y <= ALIEN_BOT_B) else 
-			 '0' when (cmd1 = START_CMD and cmd2 = START_CMD);
+				(ship_bullet_x2 +8 >= alien_x-8 and ship_bullet_x2 <= alien_x+14 and 
+				ship_bullet_y2 <= ALIEN_BOT_B) else '0';
 
 ---------------------------------------------------------------------------------------------ALIEN
 process (clk, cmd2) is begin
@@ -314,13 +314,14 @@ if rising_edge(clk) and row = to_unsigned(UPDATE_ROW,10) and col = to_unsigned(6
 		alien_bullet_y2 <= 491;
 		alien_bullet_x2 <= BULLET_OFF;
 	end if;
-	
-	-- Clean up graphics
-	if rising_edge(clk) then
-		-- Update alien_rom_x if it is inside the ROM image
-		alien_rom_x <= alien_x_coord when alien_rom_valid ='1' else 0;
-	end if;
 end if;
+
+-- Clean up graphics
+if rising_edge(clk) then
+	-- Update alien_rom_x if it is inside the ROM image
+	alien_rom_on <= alien_read_data;
+end if;
+
 end process;
 
 -------------------------------------------------------------------------------ALIEN GRAPHICS LOGIC
@@ -334,6 +335,7 @@ alien_rom_valid <= '1' when (alien_y_coord >= 0 and alien_y_coord < 32) and
 
 -- Update alien_rom_y if it is inside the ROM image
 alien_rom_y <= std_logic_vector(to_unsigned(alien_y_coord,5)) when alien_rom_valid ='1' else "00000";
+alien_rom_x <= alien_x_coord when alien_rom_valid ='1' else 0;
 
 -- Valid size for the alien
 alien_on <= '1' when row >= to_unsigned(ALIEN_TOP_B, 10) and row <= to_unsigned(ALIEN_BOT_B,10)and 
@@ -350,12 +352,10 @@ alien_bullet_on <= '1' when (row <= to_unsigned(alien_bullet_y,10) and row > to_
 				  col > to_unsigned(alien_bullet_x2+14,10) and col <= to_unsigned(alien_bullet_x2+18,10)) else '0';
 				
 -- Hit detection for ship
-hit_ship <= '1' when (alien_bullet_x +2 >= ship_x-12 and alien_bullet_x <= ship_x+14 and 
+hit_ship <= '1' when (alien_bullet_x +2 >= ship_x-8 and alien_bullet_x <= ship_x+14 and 
 				alien_bullet_y >= SHIP_TOP_B) or 
-			    (alien_bullet_x2 +2 >= ship_x-12 and alien_bullet_x2 <= ship_x+14 and 
-				alien_bullet_y2 >= SHIP_TOP_B) else 
-			'0' when (cmd1 = START_CMD and cmd2 = START_CMD);
-			
+			    (alien_bullet_x2 +2 >= ship_x-8 and alien_bullet_x2 <= ship_x+14 and 
+				alien_bullet_y2 >= SHIP_TOP_B) else '0';
 
 -----------------------------------------------------------------------------------------------------SPECIAL EFFECTS
 -- Special effect when alien is hit
@@ -366,14 +366,14 @@ effect <= '1' when (hit_alien = '1' and row >= to_unsigned(ALIEN_TOP_B, 10) and 
 
 ------------------------------------------------------------------------------------------------------OUTPUTS
 -- Output status
-status <= "11" when (hit_ship = '1' or hit_alien = '1') else "10" when (hit_ship = '0' or hit_alien = '0');
+alive <= "010" when (hit_ship = '1' ) else "011" when (hit_alien = '1') else "001";
+status <= alive;
 
 -- Output color
-rgb <= WHITE when valid='1' and (col= SHIP_L_B or col= SHIP_R_B) else 
+rgb <= WHITE when valid='1' and ( (col < SHIP_L_B and col >= SHIP_L_B-10)or (col > SHIP_R_B and col <= SHIP_R_B+10) ) else 
 	   GREEN when valid ='1' and bullet_on = '1' else
 	   RED when valid ='1' and alien_bullet_on = '1' else
 	   YELLOW when valid='1' and effect = '1' else
-	   BLUE when valid ='1' and ship_on= '1' and read_data(rom_x)= '1' and hit_ship = '0' else
-	   PINK when valid = '1' and alien_on= '1' and alien_read_data(alien_rom_x)= '1' and hit_alien = '0' 
-	   else BLACK;
+	   BLUE when valid ='1' and ship_on= '1' and rom_on(rom_x)= '1' else
+	   PINK when valid = '1' and alien_on= '1' and alien_rom_on(alien_rom_x)= '1';
 end;
