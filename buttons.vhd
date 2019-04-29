@@ -11,6 +11,7 @@ entity buttons is
 	rightbutton : in std_logic;
 	resetbutton: in std_logic;
 	a_button: in std_logic;
+	b_button: in std_logic;
 	command: out unsigned(3 downto 0)
 	);	
 end entity;
@@ -47,6 +48,8 @@ process (clk) is begin
 			input <= START_CMD;
 		elsif a_button <= '0' then
 			input <= A_CMD;
+		elsif b_button <= '0' then
+			input <= B_CMD;
 		else
 			input <= STANDBY_CMD;
 		end if;
