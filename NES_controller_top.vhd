@@ -33,6 +33,7 @@ architecture  synth of NES_controller_top is
 	signal data_register : std_logic_vector(7 downto 0);
 	signal up_p : std_logic;
 	signal down_p : std_logic;
+
 	signal B_p : std_logic;
 	signal select_p : std_logic;
 
