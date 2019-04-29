@@ -78,13 +78,13 @@ state <=  0 when selector = '1' and status1= "001" else
 		  1 when selector = '1' and status1= "010" else
 		  2 when selector = '0' and status2= "001" else
 		  3 when selector = '0' and status2= "010" else
-		  4 when selector = '0' and status2= "011";
+		  4 when selector = '0' and status2= "011" ;
 		  
 is_on <= row(5) xor col(5);
 
-	   --rgb1 when state = 0 else
-	   --RED when valid = '1'and is_on= '1' and state = 1 else
-rgb <= rgb2 when state = 2 else 
+rgb <= rgb1 when state = 0 else
+	   RED when valid = '1'and is_on= '1' and state = 1 else
+       rgb2 when state = 2 else 
 	   PINK when valid = '1'and is_on= '1' and state = 3 else
-	   BLUE when valid = '1'and is_on= '1' and state = 4;
+	   BLUE when valid = '1'and is_on= '1' and state = 4 else BLACK;
 end;

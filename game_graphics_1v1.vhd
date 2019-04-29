@@ -131,15 +131,13 @@ signal alien_bullet_on: std_logic;
 
 -- output 32-bit words from ROM
 signal read_data: std_logic_vector(31 downto 0);
-signal alien_read_data: std_logic_vector(31 downto 0);signal rom_on:  std_logic_vector(31 downto 0);
-signal alien_rom_on: std_logic_vector(31 downto 0);
-
+signal alien_read_data: std_logic_vector(31 downto 0);
 
 -- hit detection
 signal hit_ship, hit_alien: std_logic;
 signal effect: std_logic;
-signal dead: integer;
 
+signal dead: std_logic;
 signal alive: unsigned(2 downto 0) := "010";
 
 begin
@@ -207,26 +205,19 @@ if rising_edge(clk) and row = to_unsigned(UPDATE_ROW,10) and col = to_unsigned(6
 		ship_bullet_x2 <= ship_x;
 	-- Bullet travels upward until off screen
 	elsif ship_bullet_y2 > -10 then
-		ship_bullet_y2 <= ship_bullet_y2 - VELOCITY-4;
+		ship_bullet_y2 <= ship_bullet_y2 - (VELOCITY-6);
 	else
 		ship_bullet_y2 <= BULLET_OFF;
 		ship_bullet_x2 <= BULLET_OFF;
 	end if;
 	
-	-- If you hit something, turn bullet off
+	/*-- If you hit something, turn bullet off
 	if hit_alien = '1' then
 		ship_bullet_y <= BULLET_OFF;
 		ship_bullet_x <= BULLET_OFF;
 		ship_bullet_y2 <= BULLET_OFF;
 		ship_bullet_x2 <= BULLET_OFF;
-	end if;
-end if;
-
--- Clear up graphics
-if rising_edge(clk) then
-	-- Update rom_x if it is inside the ROM image
-	rom_on <= read_data;
-	rom_x <= x_coord when rom_valid ='1' else 0;
+	end if;*/
 end if;
 
 end process;
@@ -242,6 +233,7 @@ rom_valid <= '1' when (y_coord >= 0 and y_coord < 32) and
 
 -- Update rom_y if it is inside the ROM image
 rom_y <= std_logic_vector(to_unsigned(y_coord,5)) when rom_valid ='1' else "00000";
+rom_x <= x_coord when rom_valid ='1' else 0;
 
 -- Valid size for the ship
 ship_on <= '1' when row >= to_unsigned(SHIP_TOP_B,10) and row <= to_unsigned(SHIP_BOT_B,10)and 
@@ -261,7 +253,7 @@ bullet_on <= '1' when (row > to_unsigned(ship_bullet_y,10) and row <= to_unsigne
 hit_alien <= '1' when (ship_bullet_x +2 >= alien_x-8 and ship_bullet_x <= alien_x+14 and 
 				ship_bullet_y <= ALIEN_BOT_B) or 
 				(ship_bullet_x2 +8 >= alien_x-8 and ship_bullet_x2 <= alien_x+14 and 
-				ship_bullet_y2 <= ALIEN_BOT_B) else '0';
+				ship_bullet_y2 <= ALIEN_BOT_B) else '0' when cmd1 = START_CMD and cmd2 = START_CMD;
 
 ---------------------------------------------------------------------------------------------ALIEN
 process (clk, cmd2) is begin
@@ -301,25 +293,19 @@ if rising_edge(clk) and row = to_unsigned(UPDATE_ROW,10) and col = to_unsigned(6
 		alien_bullet_x2 <= alien_x;
 	-- Bullet travels downward until off screen
 	elsif alien_bullet_y2 < 490 then
-		alien_bullet_y2 <= alien_bullet_y2 + VELOCITY+4;
+		alien_bullet_y2 <= alien_bullet_y2 + VELOCITY+6;
 	else
 		alien_bullet_y2 <= 491;
 		alien_bullet_x2 <= BULLET_OFF;
 	end if;
 		
-	-- If you hit something, turn bullet off
+	/*-- If you hit something, turn bullet off
 	if hit_ship = '1' then
 		alien_bullet_y <= 491;
 		alien_bullet_x <= BULLET_OFF;
 		alien_bullet_y2 <= 491;
 		alien_bullet_x2 <= BULLET_OFF;
-	end if;
-end if;
-
--- Clean up graphics
-if rising_edge(clk) then
-	-- Update alien_rom_x if it is inside the ROM image
-	alien_rom_on <= alien_read_data;
+	end if;*/
 end if;
 
 end process;
@@ -355,7 +341,7 @@ alien_bullet_on <= '1' when (row <= to_unsigned(alien_bullet_y,10) and row > to_
 hit_ship <= '1' when (alien_bullet_x +2 >= ship_x-8 and alien_bullet_x <= ship_x+14 and 
 				alien_bullet_y >= SHIP_TOP_B) or 
 			    (alien_bullet_x2 +2 >= ship_x-8 and alien_bullet_x2 <= ship_x+14 and 
-				alien_bullet_y2 >= SHIP_TOP_B) else '0';
+				alien_bullet_y2 >= SHIP_TOP_B) else '0' when cmd1 = START_CMD and cmd2 = START_CMD;
 
 -----------------------------------------------------------------------------------------------------SPECIAL EFFECTS
 -- Special effect when alien is hit
@@ -366,14 +352,16 @@ effect <= '1' when (hit_alien = '1' and row >= to_unsigned(ALIEN_TOP_B, 10) and 
 
 ------------------------------------------------------------------------------------------------------OUTPUTS
 -- Output status
-alive <= "010" when (hit_ship = '1' ) else "011" when (hit_alien = '1') else "001";
+alive <= "010" when (hit_ship = '1') else "011" when (hit_alien = '1') else "001";
 status <= alive;
 
+dead <= '1' when hit_ship = '1' or hit_alien = '1' else '0' when cmd1 = START_CMD;
+
 -- Output color
-rgb <= WHITE when valid='1' and ( (col < SHIP_L_B and col >= SHIP_L_B-10)or (col > SHIP_R_B and col <= SHIP_R_B+10) ) else 
+rgb <= WHITE when valid='1' and (col = SHIP_L_B or col = SHIP_R_B) else 
 	   GREEN when valid ='1' and bullet_on = '1' else
 	   RED when valid ='1' and alien_bullet_on = '1' else
 	   YELLOW when valid='1' and effect = '1' else
-	   BLUE when valid ='1' and ship_on= '1' and rom_on(rom_x)= '1' else
-	   PINK when valid = '1' and alien_on= '1' and alien_rom_on(alien_rom_x)= '1';
+	   BLUE when valid ='1' and ship_on= '1' and read_data(rom_x)= '1' else
+	   PINK when valid = '1' and alien_on= '1' and alien_read_data(alien_rom_x)= '1' else BLACK;
 end;
