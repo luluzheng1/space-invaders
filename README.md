@@ -10,9 +10,23 @@ Bullet regenerates when it is not in the visible zone
 
 Generated an alien that moves from left to right and stays within an left and right bounded area
 
-Current:
-Generate a block of 3 x 4 aliens
+Space Invaders 1-v-1
+Alien battles Spaceship
+To start, both players need to press the START command on the NES controller to indicate they are both ready to battle.
 
-Future:
-Make aliens move right and down based on a lfsr and possibly a counter
+Alien at the top of the screen.
+Alien can:
+- Move left and right
+- Shoot a normal bullet with the A button
+- Shoot a faster bullet with the B button
 
+Spaceship is at the bottom of the screen.
+Spaceship can:
+- Move left and right
+- Shoot a normal bullet with the A button
+- Shoot two bullets with the B button
+
+When either of the players are shot, the game ends and the player who was shot loses. 
+A win page indicates who has won the round. 
+
+Currently still fixing out regular space invaders game. 
