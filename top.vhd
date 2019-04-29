@@ -1,16 +1,18 @@
-library IEEE; use IEEE.std_logic_1164.all; 
+library IEEE;
+use IEEE.std_logic_1164.all; 
 use IEEE.numeric_std.all; 
 
 entity top is 
     port ( 
-	HSYNC : out std_logic; 
-	VSYNC : out std_logic; 
+	selector: in std_logic;
 	NES_data1 : in std_logic;
-    NES_latch1 : out std_logic;
-    NES_controller_clk1 : out std_logic;
 	NES_data2 : in std_logic;
+	NES_latch1 : out std_logic;
+    NES_controller_clk1 : out std_logic;
     NES_latch2 : out std_logic;
     NES_controller_clk2 : out std_logic;
+	HSYNC : out std_logic; 
+	VSYNC : out std_logic;
 	RGB : out std_logic_vector(5 downto 0) 
 ); 
 end entity;
@@ -46,7 +48,7 @@ component vga is
 	); 
 end component;
 
-component game_graphics is
+component Menu is
    port (
 	clk : in std_logic;
 	valid : in std_logic;
@@ -54,6 +56,7 @@ component game_graphics is
 	col : in unsigned(9 downto 0);
 	cmd1 : in unsigned(3 downto 0);
 	cmd2 : in unsigned(3 downto 0);
+	selector : in std_logic;
 	rgb : out std_logic_vector(5 downto 0)
     );
 end component;
@@ -68,6 +71,8 @@ component buttons is
 	resetbutton: in std_logic;
 	a_button: in std_logic;
 	b_button: in std_logic;
+	up_button : in std_logic;
+	down_button : in std_logic;
 	command: out unsigned(3 downto 0)
 	);	
 end component;
@@ -82,6 +87,8 @@ component NES_controller_top is
 		
 		A_p : out std_logic;
 		B_p : out std_logic;
+		up_p : out std_logic;
+		down_p : out std_logic;
 		start_p : out std_logic;
 		left_p : out std_logic;
 		right_p : out std_logic
@@ -103,6 +110,8 @@ signal rightbutton1: std_logic;
 signal resetbutton1: std_logic;
 signal a_button1: std_logic;
 signal b_button1: std_logic;
+signal up_button1 : std_logic;
+signal down_button1 : std_logic;
 
 -- Signals for NES
 signal leftbutton2 : std_logic;
@@ -110,6 +119,8 @@ signal rightbutton2: std_logic;
 signal resetbutton2: std_logic;
 signal a_button2: std_logic;
 signal b_button2: std_logic;
+signal up_button2 : std_logic;
+signal down_button2 : std_logic;
 
 begin 
     -- Instantiate the 48 MHz source clock 
@@ -141,16 +152,17 @@ begin
     );
 
    -- Connnect the pattern generator
-   graphics: game_graphics
-   port map (
+   mode: Menu 
+   port map(
 	clk => pixclk,
 	valid => pixvalid,
 	row => pixrow,
 	col => pixcol,
 	cmd1 => cmd1,
 	cmd2 => cmd2,
-	rgb => RGB
-   ); 
+	selector => selector,
+	rgb => rgb
+    );
    
   ---------------------------------------------Player 1
     -- Connect Controller 
@@ -164,6 +176,8 @@ begin
 
      A_p => a_button1,
 	 B_p => b_button1,
+	 up_p => up_button1,
+	 down_p => down_button1,
      start_p => resetbutton1,
      left_p => leftbutton1,
      right_p => rightbutton1
@@ -180,6 +194,8 @@ begin
 	resetbutton=> resetbutton1,
 	a_button=> a_button1,
 	b_button=> b_button1,
+	up_button => up_button1,
+	down_button => down_button1,
 	command=> cmd1
 	);	
 	
@@ -195,6 +211,8 @@ begin
 
      A_p => a_button2,
 	 B_p => b_button2,
+	 up_p => up_button2,
+	 down_p => down_button2,
      start_p => resetbutton2,
      left_p => leftbutton2,
      right_p => rightbutton2
@@ -211,6 +229,8 @@ begin
 	resetbutton=> resetbutton2,
 	a_button=> a_button2,
 	b_button=> b_button2,
+	up_button => up_button2,
+	down_button => down_button2,
 	command=> cmd2
 	);
 end;
