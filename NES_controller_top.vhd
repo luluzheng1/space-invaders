@@ -11,6 +11,9 @@ entity NES_controller_top is
 		controller_clk : out std_logic;
 		
 		A_p : out std_logic;
+		B_p : out std_logic;
+		up_p : out std_logic;
+		down_p : out std_logic;
 		start_p : out std_logic;
 		left_p : out std_logic;
 		right_p : out std_logic
@@ -31,10 +34,7 @@ architecture  synth of NES_controller_top is
 	signal NESclk : std_logic;
 	signal NEScount : unsigned(10 downto 0);
 	signal data_register : std_logic_vector(7 downto 0);
-	signal up_p : std_logic;
-	signal down_p : std_logic;
 
-	signal B_p : std_logic;
 	signal select_p : std_logic;
 
 begin

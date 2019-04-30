@@ -8,7 +8,8 @@ entity game_graphics is
 	valid : in std_logic;
 	row : in unsigned(9 downto 0);
 	col : in unsigned(9 downto 0);
-	cmd : in unsigned(3 downto 0);
+	cmd1 : in unsigned(3 downto 0);
+	cmd2 : in unsigned(3 downto 0);
 	rgb : out std_logic_vector(5 downto 0)
     );
 end entity;
@@ -57,7 +58,9 @@ end component;
 constant RED: std_logic_vector(5 downto 0) := "110000";
 constant GREEN: std_logic_vector(5 downto 0) := "001100";
 constant BLUE: std_logic_vector(5 downto 0) := "000011";
+constant YELLOW: std_logic_vector(5 downto 0) := "111100";
 constant WHITE: std_logic_vector(5 downto 0) := "111111";
+constant PINK: std_logic_vector(5 downto 0) := "110010";
 
 -- Ship boundaries
 constant SHIP_TOP_B: integer := 432; 
@@ -66,16 +69,19 @@ constant SHIP_R_B: integer := 560;
 constant SHIP_L_B: integer := 80;
 
 -- Alien boundaries
-constant ALIEN_TOP_B: integer := 96;
-constant ALIEN_BOT_B: integer := 432;
+constant ALIEN_TOP_B: integer := 16;
+constant ALIEN_BOT_B: integer := 48;
 constant ALIEN_R_B: integer := 560;
 constant ALIEN_L_B: integer := 80;
 
 -- Row in dead space
 constant UPDATE_ROW: integer := 500;
+
 -- Distance ship travel per click
-constant STEP: integer := 4;
+constant STEP: integer := 6;
+
 -- Distance bullet travels
+
 constant VELOCITY: integer := 6;
 
 -- Commands from the controller
@@ -88,14 +94,18 @@ constant B_CMD: integer :=6;
 constant START_CMD: integer :=7;
 constant SELECT_CMD: integer :=8;
 constant STANDBY_CMD: integer :=9;
+
+-- Determine number of aliens and spacing
+constant NUM_MOD: integer := 32;
+constant NUM_ALIEN: integer := 9;
 	
---ship rom coordinates
+--ship ROM coordinates
 signal rom_x: integer := 0;
 signal rom_y: std_logic_vector(4 downto 0) := "00000";
 signal y_coord: integer;
 signal x_coord: integer;
 
---alien rom coordinates
+--alien ROM coordinates
 signal alien_rom_x: integer := 0;
 signal alien_rom_y: std_logic_vector(4 downto 0) := "00000";
 signal alien_y_coord: integer;
@@ -104,7 +114,6 @@ signal alien_x_coord: integer;
 -- ship location
 constant START_X: integer := 304;
 signal ship_x: integer;
-signal ship_location: integer;
 
 -- ship bullet location
 signal ship_bullet_x: integer;
@@ -129,14 +138,24 @@ signal alien_rom_valid: std_logic;
 signal ship_on: std_logic;
 signal alien_on: std_logic;
 signal ship_lb, ship_rb: std_logic;
+signal alien_lb, alien_rb: std_logic;
 signal bullet_on: std_logic;
-signal alien_bullet_on: std_logic; 
 
--- output 32 bits word from rom
+signal alien_bullet_on: std_logic;
+
+-- output 32-bit words from ROM
 signal read_data: std_logic_vector(31 downto 0);
 signal alien_read_data: std_logic_vector(31 downto 0);
 signal rom_on:  std_logic_vector(31 downto 0);
 signal alien_rom_on: std_logic_vector(31 downto 0);
+
+-- hit detection
+signal hit_ship, hit_alien: std_logic;
+signal effect: std_logic;
+signal dead: integer;
+
+-- game state
+signal status: std_logic;
 
 begin
 	ship: spaceship_graphics port map(
@@ -178,7 +197,11 @@ process (clk, cmd, ship_location, bullet_location, alien_x, alien_y, alien_bulle
 	elsif cmd = STANDBY_CMD then
 		ship_location <= ship_location;						-- Ship stay in one place if no inputs
 	end if;
-	
+-- Ship stay in one place if no inputs
+elsif cmd1 = STANDBY_CMD then
+	ship_x <= ship_x;
+end if;
+
 	-- Update bullet when in the dead zone and some inputs occurs
 	if rising_edge(clk) and row = to_unsigned(UPDATE_ROW,10) and col = to_unsigned(670,10) then
 		if cmd = A_CMD and bullet_location <= 0 then
@@ -224,8 +247,16 @@ process (clk, cmd, ship_location, bullet_location, alien_x, alien_y, alien_bulle
 		
 		alien_rom_on <= alien_read_data;
 		alien_rom_x <= alien_x_coord when alien_rom_valid ='1' else 0;
-		
 	end if;
+	
+	-- If you hit something, turn bullet off
+	if hit_alien = '1' then
+		ship_bullet_y <= BULLET_OFF;
+		ship_bullet_x <= BULLET_OFF;
+		ship_bullet_y2 <= BULLET_OFF;
+		ship_bullet_x2 <= BULLET_OFF;
+	end if;
+end if;
 end process;
 
 -- Give ship_x the ship's stored location
@@ -237,6 +268,7 @@ ship_bullet_y <= bullet_location;
 -- Give alien_bullet_x and alien_bullet_y the alien's bullet stored location
 alien_bullet_y <= alien_bullet_loc_y; 
 
+-------------------------------------------------------------------------------Graphics Logic
 -- Get the x and y coordinates for ship rom
 y_coord <= to_integer(row) - SHIP_TOP_B;
 x_coord <= to_integer(col) - ship_x;
@@ -274,12 +306,14 @@ reverse <= '1' when alien_x + 320= ALIEN_R_B else '0' when alien_x = ALIEN_L_B;
 alien_rom_valid <= '1' when (alien_y_coord >= 0 and alien_y_coord < 32) and 
 				(alien_x_coord >= 0 and alien_x_coord < 32) else '0';
 
+
 -- Update alien_rom_x and alien_rom_y if it is inside the ROM image
 --alien_rom_y <= std_logic_vector(to_unsigned(alien_y_coord,5)) when alien_rom_valid ='1' else "00000";
 --alien_rom_x <= alien_x_coord when alien_rom_valid ='1' else 0;
 
 -- Update alien_rom_x and alien_rom_y if it is inside the ROM image
 alien_rom_y <= std_logic_vector(to_unsigned(alien_y_coord,5)) when alien_rom_valid ='1' else "00000";
+
 
 -- Valid size for the alien
 alien_on <= '1' when row >= to_unsigned(alien_y, 10) and row <= to_unsigned(alien_y +96,10)and 
