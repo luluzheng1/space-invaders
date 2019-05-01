@@ -158,7 +158,8 @@ signal alien_read_data: std_logic_vector(31 downto 0);
 signal alive: unsigned(2 downto 0) := "010";
 
 -- Hit Detection
-signal reset_logic : std_logic;signal endgame : std_logic; 
+signal reset_logic : std_logic;
+signal endgame : std_logic; 
 signal ship_lives, alien_lives : integer range -3 to 10; 
 signal ship_hit, alien_hit : std_logic; 
 
@@ -396,8 +397,8 @@ alien_rb <= '1' when alien_x+32 < ALIEN_R_B else '0';
 -- Valid size of the alien's bullet
 alien_bullet_on <= '1' when (row <= to_unsigned(alien_bullet_y,10) and row > to_unsigned(alien_bullet_y-8,10)and 
 				  col > to_unsigned(alien_bullet_x,10) and col <= to_unsigned(alien_bullet_x + 2,10)) or
-				  (row <= to_unsigned(alien_bullet_y2,10) and row > to_unsigned(alien_bullet_y2-8,10)and 
-				  col > to_unsigned(alien_bullet_x2,10) and col <= to_unsigned(alien_bullet_x2 + 3,10)) else '0';
+				  (row <= to_unsigned(alien_bullet_y2,10) and row > to_unsigned(alien_bullet_y2-4,10)and 
+				  col > to_unsigned(alien_bullet_x2,10) and col <= to_unsigned(alien_bullet_x2 + 2,10)) else '0';
 
 ------------------------------------------------------------------------------------------------------EFFECTS
 -- Ship health
