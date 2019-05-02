@@ -5,10 +5,11 @@ use IEEE.numeric_std.all;
 entity alien_shooting_generator is 
 	port (
 		gen_clk : in std_logic; 
-		--gen_reset : in std_logic; 
-		--gen_enable : in std_logic; 
 		input_x : in integer; 
 		input_y : in integer; 
+		row_one : in std_logic_vector(9 downto 0); 
+		row_two : in std_logic_vector(9 downto 0); 
+		row_three : in std_logic_vector(9 downto 0); 
 		output_x : out integer; 
 		output_y : out integer
 	); 
@@ -24,7 +25,7 @@ architecture synth of alien_shooting_generator is
 	constant increment : integer := 32; 
 	signal alien_x : integer; 
 	signal alien_y : integer; 
-	
+
 	component random_num_gen is 
     port (
         clk : in std_logic; 
@@ -34,8 +35,11 @@ architecture synth of alien_shooting_generator is
     ); 
 	end component; 
 	
+	
+	
 begin 
-	initLSFR : random_num_gen port map(gen_clk, reset, LSFR); 
+	initLSFR : random_num_gen port map(gen_clk, reset, LSFR);
+	
 	process (gen_clk) begin
 		if (rising_edge(gen_clk)) then 
 			if count = "00" then
@@ -46,15 +50,12 @@ begin
 				--count <= "00"; 
 			end if; 
 			
-			random_y <= unsigned(LSFR) mod 3; 
-			random_x <= unsigned(LSFR) mod 10; 
-			
 			case random_y is 
 				when "00000" => alien_y <= input_y; 
 				when "00001" => alien_y <= input_y + 32; 
 				when "00010" => alien_y <= input_y + 64;
 				when others => alien_y <= 670; 
-			end case; 
+			end case;
 			
 			case random_x is 
 				when "00000" => alien_x <= input_x; 
@@ -69,14 +70,14 @@ begin
 				when "01001" => alien_x <= input_x + 288; 
 				when others => alien_x <= 670; 
 			end case; 
-			
-		end if; 
-			
+		end if; 	
 	end process;
-		
+	
+	random_y <= unsigned(LSFR) mod 4; 
+	random_x <= unsigned(LSFR) mod 11; 
+	
 	output_x <= alien_x; 
 	output_y <= alien_y; 
-	
 	
 end; 
 	
