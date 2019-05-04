@@ -1,6 +1,7 @@
 # ES 4: Final Project Space Invaders Home Console© Limited Edition 2019 
  
 Team Member(s): Caroline Vanderlee, Luan Banh, Melinda Burns, Melvin Lin, Wenlu Zheng 
+
 Space Invaders Inspired Game written in VHDL
 # Overview 
  
