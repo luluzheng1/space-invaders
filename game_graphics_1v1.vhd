@@ -4,14 +4,14 @@ use IEEE.numeric_std.all;
 
 entity game_graphics_1v1 is
     port (
-		clk : in std_logic;
-		valid : in std_logic;
-		row : in unsigned(9 downto 0);
-		col : in unsigned(9 downto 0);
-		cmd1 : in unsigned(3 downto 0);
-		cmd2 : in unsigned(3 downto 0);
-		status: out unsigned(2 downto 0);
-		rgb : out std_logic_vector(5 downto 0)
+	      clk : in std_logic;
+	      valid : in std_logic;
+	      row : in unsigned(9 downto 0);
+	      col : in unsigned(9 downto 0);
+	      cmd1 : in unsigned(3 downto 0);
+	      cmd2 : in unsigned(3 downto 0);
+	      status: out unsigned(2 downto 0);
+	      rgb : out std_logic_vector(5 downto 0)
     );
 end entity;
 
@@ -56,7 +56,7 @@ component collision_check is
         ship_pixel_on : in std_logic; -- rom_on(rom_x) in game graphics
         endgame : out std_logic; -- have to check both endgames in game graphics
         lives : out integer; 
-		ship_hit : out std_logic
+		    ship_hit : out std_logic
   );
 end component;
 
@@ -158,7 +158,8 @@ signal alien_read_data: std_logic_vector(31 downto 0);
 signal alive: unsigned(2 downto 0) := "010";
 
 -- Hit Detection
-signal reset_logic : std_logic;signal endgame : std_logic; 
+signal reset_logic : std_logic;
+signal endgame : std_logic; 
 signal ship_lives, alien_lives : integer; 
 signal ship_hit, alien_hit : std_logic; 
 

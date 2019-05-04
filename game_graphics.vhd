@@ -4,12 +4,12 @@ use IEEE.numeric_std.all;
 
 entity game_graphics is
     port (
-		clk : in std_logic;
-		valid : in std_logic;
-		row : in unsigned(9 downto 0);
-		col : in unsigned(9 downto 0);
-		cmd : in unsigned(3 downto 0);
-		rgb : out std_logic_vector(5 downto 0)
+		    clk : in std_logic;
+		    valid : in std_logic;
+		    row : in unsigned(9 downto 0);
+		    col : in unsigned(9 downto 0);
+		    cmd : in unsigned(3 downto 0);
+		    rgb : out std_logic_vector(5 downto 0)
     );
 end entity;
 
@@ -46,20 +46,20 @@ component alien_graphics is
 end component;
 
 component alien_shooting_generator is 
-port (
-	gen_clk : in std_logic; 
-	input_x : in integer; 
-	input_y : in integer; 
-	row_one : in std_logic_vector(9 downto 0); 
-	row_two : in std_logic_vector(9 downto 0); 
-	row_three : in std_logic_vector(9 downto 0); 
-	output_x : out integer; 
-	output_y : out integer
-); 
+    port (
+	      gen_clk : in std_logic; 
+	      input_x : in integer; 
+	      input_y : in integer; 
+	      row_one : in std_logic_vector(9 downto 0); 
+	      row_two : in std_logic_vector(9 downto 0); 
+	      row_three : in std_logic_vector(9 downto 0); 
+	      output_x : out integer; 
+	      output_y : out integer
+    ); 
 end component;
 
 component collision_check_alien is
-  port(
+    port(
         clk : in std_logic;
         reset_game : in std_logic;
         ship_bullet_on : in std_logic;
@@ -76,14 +76,13 @@ component collision_check_alien is
         aliens_updated_row1 : out std_logic_vector(9 downto 0);
         aliens_updated_row2 : out std_logic_vector(9 downto 0);
         endgame : out std_logic;
-		alien_hit : out std_logic;
-		alien_activated : in std_logic
-
-  );
+		    alien_hit : out std_logic;
+		    alien_activated : in std_logic
+     );
 end component;
 
 component collision_check_ship is
-  port(
+    port(
         clk : in std_logic;
         reset_game : in std_logic;
         alien_bullet_on : in std_logic;
@@ -91,22 +90,22 @@ component collision_check_ship is
         ship_pixel_on : in std_logic;
         endgame : out std_logic;
         lives : out integer range 0 to 2; 
-		ship_hit : out std_logic;
-		bullet_deactivated : in std_logic
-  );
+		    ship_hit : out std_logic;
+		    bullet_deactivated : in std_logic
+    );
 end component;
 
 component alien_box_checker is 
-port (
-	clk : in std_logic; 
-	alien_x : in integer;
-	alien_y : in integer;
-	alien_box_on : in std_logic;
-	row : in unsigned(9 downto 0);
-	col : in unsigned(9 downto 0);
-	alien_on_x : out integer range 0 to 10;
-	alien_on_y : out integer range 0 to 3
-); 
+    port (
+	    clk : in std_logic; 
+	    alien_x : in integer;
+	    alien_y : in integer;
+	    alien_box_on : in std_logic;
+	    row : in unsigned(9 downto 0);
+	    col : in unsigned(9 downto 0);
+	    alien_on_x : out integer range 0 to 10;
+	    alien_on_y : out integer range 0 to 3
+    ); 
 end component;
 
 -- Colors
@@ -147,13 +146,13 @@ constant START_CMD: integer :=7;
 constant SELECT_CMD: integer :=8;
 constant STANDBY_CMD: integer :=9;
 
---ship rom coordinates
+--ship ROM coordinates
 signal rom_x: integer := 0;
 signal rom_y: std_logic_vector(4 downto 0) := "00000";
 signal y_coord: integer;
 signal x_coord: integer;
 
---alien rom coordinates
+--alien ROM coordinates
 signal alien_rom_x: integer := 0;
 signal alien_rom_y: std_logic_vector(4 downto 0) := "00000";
 signal alien_y_coord: integer;
@@ -431,7 +430,7 @@ end process;
 
 -- Update rom_y if it is inside the ROM image
 rom_y <= std_logic_vector(to_unsigned(y_coord,5)) when rom_valid ='1' else "00000";
-
+   
 -- Give ship_x the ship's stored location
 ship_x <= ship_location;
 
@@ -453,7 +452,7 @@ rom_valid <= '1' when (y_coord >= 0 and y_coord < 32) and
 -- Valid size for the ship
 ship_on <= '1' when row >= to_unsigned(SHIP_TOP_B,10) and row <= to_unsigned(SHIP_BOT_B,10)and 
   col >= to_unsigned(ship_x,10) and col <= to_unsigned(ship_x + 32,10) else '0';
-  
+
 -- Valid boundary for the ship
 ship_lb <= '1' when ship_x > SHIP_L_B else '0';
 ship_rb <= '1' when ship_x+32 < SHIP_R_B else '0';
@@ -474,8 +473,9 @@ reverse <= '1' when alien_x + 320= ALIEN_R_B else '0' when alien_x = ALIEN_L_B;
 
 -- Check if coordinates are 0<= x <32 and 0<= y <32
 alien_rom_valid <= '1' when (alien_y_coord >= 0 and alien_y_coord < 32) and 
-(alien_x_coord >= 0 and alien_x_coord < 32) else '0';
 
+(alien_x_coord >= 0 and alien_x_coord < 32) else '0';
+    
 -- Update alien_rom_x and alien_rom_y if it is inside the ROM image
 alien_rom_y <= std_logic_vector(to_unsigned(alien_y_coord,5)) when alien_rom_valid ='1' else "00000";
 
