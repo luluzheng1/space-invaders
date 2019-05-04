@@ -1,32 +1,16 @@
-# Space-Invaders
+# ES 4: Final Project Space Invaders Home Console© Limited Edition 2019 
+ 
+Team Member(s): Caroline Vanderlee, Luan Banh, Melinda Burns, Melvin Lin, Wenlu Zheng 
 Space Invaders Inspired Game written in VHDL
+# Overview 
+ 
+The basic idea for our project was to implement Space Invaders on an FPGA chip using VHDL and incorporating the NES controller and VGA breakout board. Along the way, we also implemented a two-player version of Space Invaders, in which one player controlled the ship and another player controlled a single alien. 
 
-Implemented:
-Generated a spaceship and made it move on the screen based on user input
+The NES_controller interface receives user input and sends output signals to the buttons interface. The buttons interface determines which button on the controller has been pressed and assigns a constant to its output depending on the command received from the controller. A set of two NES_controllers and buttons instantiations are needed for multiplayer mode. Each constant that represents a specific command is fed into the Menu module, which determines which mode to run the game in based on a selector value that’s controlled by a DIP switch. The Menu module is sensitive to the status of the game and determines the graphics display on the monitor.  While the game is played, the classic mode is driven by the game_graphics interface and the multiplayer mode is driven by the game_graphics_1v1 interface. These two interfaces drive the dynamic display of aliens, ship, and bullets in each mode based on separate game logic implemented in its respective modules. Game_graphics detects whether an alien or ship has been hit by a bullet, keeps track of the number of aliens alive, and maintains a life counter for the ship. Random_num_gen outputs a random count value that is fed into alien_shooting_generator to determine which alien shoots a bullet.  Collision_check_alien keeps track of number of collisions between the ship’s bullet and the aliens to determine whether the game has ended and updates the alien array. 
+Similarly, collision_check_ship keeps track of the number of times the aliens’ bullets hit the ship to determine whether the game has ended.  In multiplayer mode, Game_graphics_1v1 displays the locations of player1 and player2 and two types of bullet attacks and maintains a life counter for both players. Both game_graphics and game_graphics_1v1 generate sprites by reading data from ROM blocks. When the game in multiplayer mode ends, Menu displays a win page indicating which player has won. The menu module outputs an RGB value sent to the monitor via VGA based on the mode and status of the game.  
 
-The Spaceship can shoot a bullet when stationary
-
-Bullet regenerates when it is not in the visible zone
-
-Generated an alien that moves from left to right and stays within an left and right bounded area
-
-Space Invaders 1-v-1
-Alien battles Spaceship
-To start, both players need to press the START command on the NES controller to indicate they are both ready to battle.
-
-Alien at the top of the screen.
-Alien can:
-- Move left and right
-- Shoot a normal bullet with the A button
-- Shoot a faster bullet with the B button
-
-Spaceship is at the bottom of the screen.
-Spaceship can:
-- Move left and right
-- Shoot a normal bullet with the A button
-- Shoot two bullets with the B button
-
-When either of the players are shot, the game ends and the player who was shot loses. 
-A win page indicates who has won the round. 
-
-Currently still fixing out regular space invaders game. 
+Results Video Demo: https://youtu.be/w9ljqvRHKeE Github Repo: https://github.com/luluzheng1/Space-Invaders 
+ 
+Our project has a frame rate of 60 frames per second and can display up to 16 colors to create the graphics, but only 6 colors were used. It has two games; the user can switch between the games using the DIP switch on the circuit board. Both games work successfully and can be reset by pressing the “start” button on the NES controller. For the multiplayer game, the game is reset when the “start” button is pressed on both controllers at the same time.  While our program works overall, there are a few bugs that we were unable to work out in the time provided. The graphics are slightly fuzzy and blurred in the center of the screen, although they are clear towards the edges of the monitor. Additionally, for the Space Invaders game, aliens that vanish once they are hit continue to fire bullets at random, resulting in an effect where bullets are fired at the ship from empty space. Given more time, the more ideas would have been implemented into both modes. Up until the last few days of the project, it was originally planned to make the aliens move down, as well as left and right, until the boundary is reached (close to the ship). It was decided not to include this feature due to time constraints. In addition, sound effects would have been added, but the sound chip was ordered relatively late, so it ended up not coming in on time. Some of the extra features that were cut 
+out earlier on in the project also included shields, a score display on the screen, explosion animations, and a scrolling starfield background.  
+ 
